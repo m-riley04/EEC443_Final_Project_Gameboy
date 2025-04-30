@@ -102,3 +102,4 @@ gameboy.runs/
 */*/*/bd/*/ip/*/*.tcl
 hw_handoff
 ipshared
+gameboy.sim/

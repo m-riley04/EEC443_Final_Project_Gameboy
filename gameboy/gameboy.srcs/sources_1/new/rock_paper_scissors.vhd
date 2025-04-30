@@ -35,7 +35,11 @@ architecture Behavioral of rock_paper_scissors is
     -- Timer for display delays
     constant HALF_SEC : unsigned(25 downto 0) := to_unsigned(50_000_000, 26);
     signal   t_cnt    : unsigned(25 downto 0) := (others=>'0');
-
+    
+     -- for 100 MHz → ~5 kHz digit-scan (≈1.6 kHz per digit)
+     constant REFRESH_MAX : unsigned(15 downto 0) := to_unsigned(20_000, 16);
+     signal refresh_cnt : unsigned(15 downto 0) := (others => '0');
+     signal scan_digit  : integer range 0 to 2 := 0;
     
 begin
     -- LFSR update clock
@@ -106,13 +110,47 @@ begin
         end if;
     end process;
 
-    -- 7-seg display
-    AN <= "11111110"; -- enable digit 0 only
+    -- multiplex three 7-segment digits:
+--   digit 0 = user choice
+--   digit 1 = comp choice (only once user has picked)
+--   digit 2 = result      (only during SHOW_RES)
+process(clk)
+begin
+  if rising_edge(clk) then
+    -- refresh timing
+    if refresh_cnt = REFRESH_MAX then
+      refresh_cnt <= (others => '0');
+      if scan_digit = 2 then
+        scan_digit <= 0;
+      else
+        scan_digit <= scan_digit + 1;
+      end if;
+    else
+      refresh_cnt <= refresh_cnt + 1;
+    end if;
 
-    with state select
-        CA <= seg_pat(rpc_ch_choice(comp_choice)) when SHOW_COMP,
-              seg_pat(rpc_ch_result(result))      when SHOW_RES,
-              (others=>'1')                   when others;
+    -- drive AN/CA for the current scan_digit
+    case scan_digit is
+      when 0 =>
+        AN <= "11111110";  -- digit 0 on
+        CA <= seg_pat(rpc_ch_choice(user_choice));
+      when 1 =>
+        AN <= "11111101";  -- digit 1 on
+        if state /= WAIT_INPUT then
+          CA <= seg_pat(rpc_ch_choice(comp_choice));
+        else
+          CA <= (others=>'1');  -- blank if no choice yet
+        end if;
+      when 2 =>
+        AN <= "11111011";  -- digit 2 on
+        if state = SHOW_RES then
+          CA <= seg_pat(rpc_ch_result(result));
+        else
+          CA <= (others=>'1');  -- blank until result
+        end if;
+    end case;
+  end if;
+end process;
 
     -- LED displays
     LED <= (others=>'0');
