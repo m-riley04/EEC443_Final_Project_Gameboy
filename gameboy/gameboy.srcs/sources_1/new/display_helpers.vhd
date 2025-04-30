@@ -46,19 +46,16 @@ constant letY : integer := 89;
 constant letZ : integer := 90;
 
 function seg_pat(c : character) return std_logic_vector;
+function rpc_ch_choice(i : integer) return character;
+function rpc_ch_result(i : integer) return character;
+function hl_ch_result(i : integer) return character;
 
 end display_helpers;
 
 package body display_helpers is
 
--- active-low a b c d e f g
--- package body display_helpers
--- active-low   g f e d c b a   (bit 6 … bit 0)
 function seg_pat(c : character) return std_logic_vector is
-    -- first create pattern in a b c d e f g order …
     variable abcd    : std_logic_vector(6 downto 0);
-    -- … then flip it to g f e d c b a order needed by Nexys-4.
-    variable gfedcba : std_logic_vector(6 downto 0);
 begin
     case c is
         when '0' => abcd := "0000001";
@@ -74,28 +71,49 @@ begin
         when 'A' => abcd := "0001000";
         when 'C' => abcd := "0110001";
         when 'E' => abcd := "0110000";
+        when 'H' => abcd := "1001000";
         when 'L' => abcd := "1110001";
         when 'O' => abcd := "0000001";
         when 'P' => abcd := "0011000";
         when 'R' => abcd := "1111010";  -- small "r" shape
         when 'S' => abcd := "0100100";
         when 'T' => abcd := "1110000";
-        when 'W' => abcd := "1101011";  -- approximation
+        when 'W' => abcd := "1100011";  -- very rough w
         when '-' => abcd := "1111110";
         when others => abcd := (others=>'1');  -- blank
     end case;
-
-    -- reverse bit-order: abcd(0)=a  … abcd(6)=g
-    gfedcba(6) := abcd(6);   -- g
-    gfedcba(5) := abcd(5);   -- f
-    gfedcba(4) := abcd(4);   -- e
-    gfedcba(3) := abcd(3);   -- d
-    gfedcba(2) := abcd(2);   -- c
-    gfedcba(1) := abcd(1);   -- b
-    gfedcba(0) := abcd(0);   -- a
-    return gfedcba;
+    
+    return abcd;
 end function;
 
+function rpc_ch_choice(i : integer) return character is
+begin
+    case i is
+        when 0      => return 'R';
+        when 1      => return 'P';
+        when 2      => return 'S';
+        when others => return '-';
+    end case;
+end;
 
+function rpc_ch_result(i : integer) return character is
+begin
+    case i is
+        when 0      => return 'T';       -- tie
+        when 1      => return 'W';       -- win
+        when 2      => return 'L';       -- lose
+        when others => return '-';
+    end case;
+end;
+
+function hl_ch_result(i : integer) return character is
+begin
+    case i is
+        when 0      => return 'H';       -- lower
+        when 1      => return 'W';       -- win
+        when 2      => return 'L';       -- higher
+        when others => return '-';
+    end case;
+end;
 
 end package body;

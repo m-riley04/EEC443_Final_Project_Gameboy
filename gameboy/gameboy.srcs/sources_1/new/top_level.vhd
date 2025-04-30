@@ -37,7 +37,6 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-    --------------------------------------------------------------------------
     component rock_paper_scissors is
         port (
             clk       : in  std_logic;
@@ -49,12 +48,23 @@ architecture Behavioral of top_level is
             LED       : out std_logic_vector(15 downto 0)
         );
     end component;
+    
+    component higher_or_lower is
+        port (
+            clk       : in  std_logic;          -- 100 MHz
+            guess     : in  std_logic_vector(14 downto 0);
+            btn_c     : in  std_logic;
+            AN        : out std_logic_vector(7 downto 0);
+            CA        : out std_logic_vector(6 downto 0);
+            LED       : out std_logic_vector(15 downto 0)
+        );
+    end component;
 
-    signal an_rpc  : std_logic_vector(7 downto 0);
-    signal ca_rpc  : std_logic_vector(6 downto 0);
-    signal led_rpc : std_logic_vector(15 downto 0);
+    -- one set of buses for each game
+    signal an_rpc  , an_hl  : std_logic_vector(7 downto 0);
+    signal ca_rpc  , ca_hl  : std_logic_vector(6 downto 0);
+    signal led_rpc , led_hl : std_logic_vector(15 downto 0);
 begin
-    -- Rock / Paper / Scissors instance
     game_rpc : rock_paper_scissors
         port map (
             clk   => CLK100MHZ,
@@ -66,12 +76,27 @@ begin
             LED   => led_rpc
         );
 
-    -- Game-select on SW(15) (0 = active, 1 = blank)
+    game_hl : higher_or_lower
+        port map (
+            clk   => CLK100MHZ,
+            guess => SW(14 downto 0),
+            btn_c => BTNC,
+            AN    => an_hl,
+            CA    => ca_hl,
+            LED   => led_hl
+        );
+
+    ------------------------------------------------------------------
+    -- Game selector : SW(15) = 0 → R/P/S, 1 → Higher/Lower
+    ------------------------------------------------------------------
     with SW(15) select
-        AN  <= an_rpc  when '0', (others=>'1') when others;
+        AN  <= an_rpc  when '0',  an_hl  when others;
+
     with SW(15) select
-        CA  <= ca_rpc  when '0', (others=>'1') when others;
+        CA  <= ca_rpc  when '0',  ca_hl  when others;
+
     with SW(15) select
-        LED <= led_rpc when '0', (others=>'0') when others;
+        LED <= led_rpc when '0',  led_hl when others;
 end Behavioral;
+
 
