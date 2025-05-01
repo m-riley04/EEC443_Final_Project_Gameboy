@@ -109,9 +109,9 @@ end;
 function hl_ch_result(i : integer) return character is
 begin
     case i is
-        when 0      => return 'H';       -- lower
+        when 0      => return 'L';       -- lower
         when 1      => return 'W';       -- win
-        when 2      => return 'L';       -- higher
+        when 2      => return 'H';       -- higher
         when others => return '-';
     end case;
 end;
