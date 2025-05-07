@@ -65,6 +65,7 @@ architecture Behavioral of top_level is
     signal ca_rpc  , ca_hl  : std_logic_vector(6 downto 0);
     signal led_rpc , led_hl : std_logic_vector(15 downto 0);
 begin
+    -- Game initialization
     game_rpc : rock_paper_scissors
         port map (
             clk   => CLK100MHZ,
@@ -86,9 +87,7 @@ begin
             LED   => led_hl
         );
 
-    ------------------------------------------------------------------
-    -- Game selector : SW(15) = 0 → R/P/S, 1 → Higher/Lower
-    ------------------------------------------------------------------
+    -- Game selection logic
     with SW(15) select
         AN  <= an_rpc  when '0',  an_hl  when others;
 

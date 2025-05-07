@@ -55,9 +55,7 @@ architecture Behavioral of rock_paper_scissors is
 
 begin
 
-    ----------------------------------------------------------------------------
-    -- LFSR process
-    ----------------------------------------------------------------------------
+    -- LFSR randomization
     process(clk)
     begin
         if rising_edge(clk) then
@@ -66,9 +64,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------------------
-    -- Button-press edge detection
-    ----------------------------------------------------------------------------
+    -- Button press/choice logic (with debouncing)
     process(clk)
     begin
         if rising_edge(clk) then
@@ -82,9 +78,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------------------
-    -- Main FSM: WAIT_INPUT → SHOW_COMP → SHOW_RES
-    ----------------------------------------------------------------------------
+    -- Main FSM logic
     process(clk)
     begin
         if rising_edge(clk) then
