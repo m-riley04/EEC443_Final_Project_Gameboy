@@ -103,3 +103,5 @@ gameboy.runs/
 hw_handoff
 ipshared
 gameboy.sim/
+gameboy.gen/
+bd/
